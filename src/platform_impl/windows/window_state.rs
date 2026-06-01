@@ -324,7 +324,10 @@ impl WindowFlags {
             return;
         }
 
-        if new.contains(WindowFlags::VISIBLE) {
+        if new.contains(WindowFlags::VISIBLE)
+            && !new.contains(WindowFlags::MAXIMIZED)
+            && !new.contains(WindowFlags::MINIMIZED)
+        {
             let flag = if !self.contains(WindowFlags::MARKER_ACTIVATE) {
                 self.set(WindowFlags::MARKER_ACTIVATE, true);
                 SW_SHOWNOACTIVATE
@@ -359,7 +362,9 @@ impl WindowFlags {
             }
         }
 
-        if diff.contains(WindowFlags::MAXIMIZED) || new.contains(WindowFlags::MAXIMIZED) {
+        if new.contains(WindowFlags::VISIBLE)
+            && (diff.contains(WindowFlags::MAXIMIZED) || new.contains(WindowFlags::MAXIMIZED))
+        {
             unsafe {
                 ShowWindow(window, match new.contains(WindowFlags::MAXIMIZED) {
                     true => SW_MAXIMIZE,
@@ -369,7 +374,9 @@ impl WindowFlags {
         }
 
         // Minimize operations should execute after maximize for proper window animations
-        if diff.contains(WindowFlags::MINIMIZED) {
+        if new.contains(WindowFlags::VISIBLE)
+            && (diff.contains(WindowFlags::MINIMIZED) || new.contains(WindowFlags::MINIMIZED))
+        {
             unsafe {
                 ShowWindow(window, match new.contains(WindowFlags::MINIMIZED) {
                     true => SW_MINIMIZE,
